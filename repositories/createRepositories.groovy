@@ -82,7 +82,7 @@ void initRepositories() {
 }
 
 void validateArtifactoryAvailability() {
-    if (! artifactory.system().ping()) {
+    if (!artifactory.system().ping()) {
         System.err.println("Artifactory is not available. either provided URL is wrong, or username and password are incorrect.")
         System.exit(1)
     }
@@ -90,26 +90,39 @@ void validateArtifactoryAvailability() {
 
 void createRepositories() {
     if (args[3] == "all") {
-        repositorySettings.each { type, value ->
-            List createdRepos = []
-            for (int i = 1; i < value.size(); i++) {
-                String repoName = type
-                if (value[i] instanceof LocalRepositoryBuilder) {
-                    repoName += "-local"
-                    createdRepos.add(repoName)
-                } else if (value[i] instanceof RemoteRepositoryBuilder) {
-                    repoName += "-remote"
-                    createdRepos.add(repoName)
-                } else if (value[i] instanceof VirtualRepositoryBuilder) {
-                    value[i].repositories(createdRepos)
-                }
-                Repository repo = value[i].key(repoName).repositorySettings(value[0]).build()
-                try{
-                    artifactory.repositories().create(0, repo)
-                } catch (HttpResponseException hre) {
-                    if (hre.statusCode == 400 && ! hre.response.data.text.contains("already exists")) {
-                        throw hre
-                    }
+        createRepositories(repositorySettings)
+    } else {
+        List customRepos = args[3].split(",")
+        if (!repositorySettings.keySet().containsAll(customRepos)) {
+            System.err.println("One or more of the requested package types doesn't exists in Artifactory or supported by this script")
+            System.err.println("Supported package types: ${repositorySettings.keySet().sort().join(", ")}")
+            System.err.println("Requested package types: ${args[3]}")
+        } else {
+            createRepositories(repositorySettings.subMap(customRepos))
+        }
+    }
+}
+
+def createRepositories(Map<String, List> settings) {
+    settings.each { type, value ->
+        List createdRepos = []
+        for (int i = 1; i < value.size(); i++) {
+            String repoName = type
+            if (value[i] instanceof LocalRepositoryBuilder) {
+                repoName += "-local"
+                createdRepos.add(repoName)
+            } else if (value[i] instanceof RemoteRepositoryBuilder) {
+                repoName += "-remote"
+                createdRepos.add(repoName)
+            } else if (value[i] instanceof VirtualRepositoryBuilder) {
+                value[i].repositories(createdRepos)
+            }
+            Repository repo = value[i].key(repoName).repositorySettings(value[0]).build()
+            try {
+                artifactory.repositories().create(0, repo)
+            } catch (HttpResponseException hre) {
+                if (hre.statusCode == 400 && !hre.response.data.text.contains("already exists")) {
+                    throw hre
                 }
             }
         }
