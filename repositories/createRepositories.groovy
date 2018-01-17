@@ -74,7 +74,7 @@ void initRepositories() {
             "puppet"   : [new PuppetRepositorySettingsImpl(), artifactory.repositories().builders().localRepositoryBuilder(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://forgeapi.puppetlabs.com/"), artifactory.repositories().builders().virtualRepositoryBuilder()],
             "sbt"      : [new SbtRepositorySettingsImpl(), artifactory.repositories().builders().localRepositoryBuilder(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://jcenter.bintray.com"), artifactory.repositories().builders().virtualRepositoryBuilder()],
             "vagrant"  : [new VagrantRepositorySettingsImpl(), artifactory.repositories().builders().localRepositoryBuilder()],
-            "rpm"      : [new RpmRepositorySettingsImpl().setCalculateYumMetadata(true), artifactory.repositories().builders().localRepositoryBuilder(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://jcenter.bintray.com"), artifactory.repositories().builders().virtualRepositoryBuilder()],
+            "rpm"      : [getRpmSettings(), artifactory.repositories().builders().localRepositoryBuilder(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://jcenter.bintray.com"), artifactory.repositories().builders().virtualRepositoryBuilder()],
             "generic"  : [new GenericRepositorySettingsImpl(), artifactory.repositories().builders().localRepositoryBuilder(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://jcenter.bintray.com"), artifactory.repositories().builders().virtualRepositoryBuilder()],
             "p2"       : [new P2RepositorySettingsImpl(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://jcenter.bintray.com"), artifactory.repositories().builders().virtualRepositoryBuilder()],
             "vcs"      : [new VcsRepositorySettingsImpl(), artifactory.repositories().builders().remoteRepositoryBuilder().url("https://github.com/")]
@@ -127,6 +127,12 @@ def createRepositories(Map<String, List> settings) {
             }
         }
     }
+}
+
+RpmRepositorySettingsImpl getRpmSettings() {
+    RpmRepositorySettingsImpl rpmSettings = new RpmRepositorySettingsImpl()
+    rpmSettings.setCalculateYumMetadata(true)
+    return rpmSettings
 }
 
 validateArgs()
